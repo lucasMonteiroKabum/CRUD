@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>CRUD Perl & Mojolicious</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .email-list {
+            display: none;
+            margin-top: 5px;
+        }
+        .email-icon {
+            cursor: pointer;
+            margin-left: 5px;
+            color: #0d6efd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Gerenciamento de Usuários</h1>
+        <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addUserModal">Adicionar Usuário</button>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Número</th>
+                    <th>Emails</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% for my $user (@$users) { %>
+                    <tr id="user-<%= $user->{id} %>">
+                        <td><%= $user->{name} %></td>
+                        <td><%= $user->{phone} %></td>
+                        <td>
+                            <!-- <% my @emails = split(/\s*,\s*/, $user->{emails}); %> -->
+                            <% if (@emails > 1) { %>
+                                <span class="email-display">
+                                    <!-- <%= $emails[0] %> -->
+                                    <i class="bi bi-list email-icon" data-id="<%= $user->{userId} %>"></i>
+                                </span>
+                                <div class="email-list" id="email-list-<%= $user->{userId} %>">
+                                    <ul style="list-style-type: none;">
+                                        <% foreach my $email (@emails) { %>
+                                            <li><%= $email %></li>
+                                        <% } %>
+                                    </ul>
+                                </div>
+                            <% } else { %>
+                                <%= $user->{emails} %>
+                            <% } %>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-warning edit-btn" data-id="<%= $user->{userId} %>">Editar</button>
+                            <button class="btn btn-sm btn-danger delete-btn" data-id="<%= $user->{userId} %>">Excluir</button>
+                        </td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+
+<!-- Modais -->
+
+<!-- Adicionar Usuário Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <form id="addUserForm">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Adicionar Usuário</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+              <div class="mb-3">
+                  <label for="addName" class="form-label">Nome</label>
+                  <input type="text" class="form-control" id="addName" name="name" required>
+              </div>
+              <div class="mb-3">
+                  <label for="addNumber" class="form-label">Número</label>
+                  <input type="text" class="form-control" id="addNumber" name="number" required>
+              </div>
+              <div class="mb-3">
+                  <label class="form-label">Emails</label>
+                  <div id="addEmailsContainer">
+                      <div class="input-group mb-2 email-group">
+                          <input type="email" class="form-control email-input" name="emails[]" placeholder="Email" required>
+                          <button type="button" class="btn btn-danger remove-email-btn" style="display: none;">Remover</button>
+                      </div>
+                  </div>
+                  <button type="button" class="btn btn-secondary" id="addMoreEmailsBtn">Adicionar Email</button>
+              </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Adicionar</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<!-- Editar Usuário Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <form id="editUserForm">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Editar Usuário</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+              <input type="hidden" id="editUserId" name="id">
+              <div class="mb-3">
+                  <label for="editName" class="form-label">Nome</label>
+                  <input type="text" class="form-control" id="editName" name="name" required>
+              </div>
+              <div class="mb-3">
+                  <label for="editNumber" class="form-label">Número</label>
+                  <input type="text" class="form-control" id="editNumber" name="number" required>
+              </div>
+              <div class="mb-3">
+                  <label class="form-label">Emails</label>
+                  <div id="editEmailsContainer">
+                    
+                  </div>
+                  <button type="button" class="btn btn-secondary" id="editAddMoreEmailsBtn">Adicionar Email</button>
+              </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-warning">Salvar Alterações</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<!-- Excluir Usuário Modal -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="deleteUserForm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Excluir Usuário</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="deleteUserId" name="id">
+            <p>Tem certeza que deseja excluir este usuário?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-danger">Excluir</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/scripts.js"></script>
+<script>
+    // Manipulação do ícone de lista para exibir/esconder emails
+    $(document).ready(function() {
+        $('.email-icon').click(function() {
+            const userId = $(this).data('id');
+            $(`#email-list-${userId}`).slideToggle();
+        });
+    });
+</script>
+</body>
+</html>
